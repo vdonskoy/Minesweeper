@@ -1,8 +1,9 @@
+require 'yaml'
 class Tile
   attr_accessor :board, :coords, :bombed, :revealed, :flagged, :mark
 
   def initialize(board)
-    @bombed = rand(10) < 2 ? true : false
+    @bombed = rand(10) < 1 ? true : false
     @revealed = false
     @flagged = false
     @coords = [0,0]
@@ -20,7 +21,8 @@ class Tile
     if bombs_nearby == 0
       @mark = " "
       neighbors.each do |neighbor|
-        @board.board[neighbor[0]][neighbor[1]].reveal if @board.board[neighbor[0]][neighbor[1]].revealed == false
+        neighbor_tile = @board.board[neighbor[0]][neighbor[1]]
+        neighbor_tile.reveal if neighbor_tile.revealed == false
       end
     else
       @mark = bombs_nearby.to_s
@@ -28,7 +30,7 @@ class Tile
   end
 
   def flag
-    @flagged == false ? @flagged = true : @flagged = false
+    @flagged = (@flagged == false ? true : false)
   end
 
   ADJS = [
@@ -71,19 +73,13 @@ class Board
 
   def initialize
     @board = []
-    i = 0
-    while i < 9
-      j = 0
+    9.times do |i|
       @board << []
-      while j < 9
+      9.times do |j|
         @board[i][j] = Tile.new(self)
         @board[i][j].coords = [i,j]
-        j += 1
       end
-      i += 1
     end
-
-    print_board
   end
 
   def print_board
@@ -129,11 +125,24 @@ class Board
         end
       elsif input[0] == "f"
         @board[input[1].to_i][input[2].to_i].flag
+      elsif input.join("") == "save"
+        self.save
+        puts "saved"
       end
 
       print_board
     end
 
+  end
+
+  def save
+    File.open("Minesweeper_save.yml", "w") do |f|
+      f.puts self.to_yaml
+    end
+  end
+
+  def self.load
+    YAML.load(File.read("Minesweeper_save.yml"))
   end
 
   def game_over?
@@ -145,5 +154,15 @@ class Board
 
     puts "You won!"
     return true
+  end
+end
+
+if __FILE__ == $PROGRAM_NAME
+  puts "New game or Load game?"
+  answer = gets.chomp
+  if answer == "new"
+    Board.new.play
+  elsif answer == "load"
+    Board.load.play
   end
 end
