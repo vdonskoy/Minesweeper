@@ -7,18 +7,18 @@ class Tile
     @flagged = false
     @coords = [0,0]
     @board = board
-    @mark = "O"
+    @mark = "❑"
   end
 
   def reveal
-    return "F" if self.flagged
+    return "⚑" if self.flagged
     @revealed = true
     bombs_nearby = self.neighbor_bomb_count
 
-    return @mark = "*" if self.bombed
+    return @mark = "☭" if self.bombed
 
     if bombs_nearby == 0
-      @mark = "_"
+      @mark = " "
       neighbors.each do |neighbor|
         @board.board[neighbor[0]][neighbor[1]].reveal if @board.board[neighbor[0]][neighbor[1]].revealed == false
       end
@@ -93,11 +93,11 @@ class Board
 
       row.each do |tile|
         if tile.flagged
-          space = "F"
+          space = "⚑"
         elsif tile.revealed
           space = tile.mark
         else
-          space = "O"
+          space = "❑"
         end
         print_row += space
 
