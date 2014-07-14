@@ -2,7 +2,7 @@ class Tile
   attr_accessor :board, :coords, :bombed, :revealed, :flagged, :mark
 
   def initialize(board)
-    @bombed = rand(10) < 1 ? true : false
+    @bombed = rand(10) < 2 ? true : false
     @revealed = false
     @flagged = false
     @coords = [0,0]
@@ -11,8 +11,8 @@ class Tile
   end
 
   def reveal
+    return "F" if self.flagged
     @revealed = true
-
     bombs_nearby = self.neighbor_bomb_count
 
     return @mark = "*" if self.bombed
@@ -28,7 +28,7 @@ class Tile
   end
 
   def flag
-    @flagged = true
+    @flagged == false ? @flagged = true : @flagged = false
   end
 
   ADJS = [
@@ -108,7 +108,42 @@ class Board
 
     nil
   end
-end
 
-b = Board.new
-b.print_board
+
+  def play
+
+    print_board
+
+    until game_over?
+
+      puts "Where do you want to look? (r - reveal, f - flag ... example: r12)"
+
+      input = gets.chomp.split("")
+
+      if input[0] == "r"
+        @board[input[1].to_i][input[2].to_i].reveal
+        if @board[input[1].to_i][input[2].to_i].bombed
+          print_board
+          puts "You lost!"
+          break
+        end
+      elsif input[0] == "f"
+        @board[input[1].to_i][input[2].to_i].flag
+      end
+
+      print_board
+    end
+
+  end
+
+  def game_over?
+    @board.each do |row|
+      row.each do |tile|
+        return false if tile.revealed == false && !tile.bombed
+      end
+    end
+
+    puts "You won!"
+    return true
+  end
+end
