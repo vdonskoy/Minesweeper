@@ -1,32 +1,34 @@
 class Tile
-  attr_accessor :coords, :bombed, :revealed, :flagged
+  attr_accessor :board, :coords, :bombed, :revealed, :flagged, :mark
 
-  def initialize
-    @bombed = rand(10) < 2 ? true : false
+  def initialize(board)
+    @bombed = rand(10) < 1 ? true : false
     @revealed = false
     @flagged = false
     @coords = [0,0]
+    @board = board
+    @mark = "O"
   end
 
   def reveal
     @revealed = true
+
+    bombs_nearby = self.neighbor_bomb_count
+
+    return @mark = "*" if self.bombed
+
+    if bombs_nearby == 0
+      @mark = "_"
+      neighbors.each do |neighbor|
+        @board.board[neighbor[0]][neighbor[1]].reveal if @board.board[neighbor[0]][neighbor[1]].revealed == false
+      end
+    else
+      @mark = bombs_nearby.to_s
+    end
   end
 
   def flag
     @flagged = true
-  end
-
-  def mark
-    bombs_nearby = self.neighbor_bomb_count
-
-    if bombs_nearby == 0
-      mark = "_"
-      neighbors.each { |neighbor| neighbor.reveal }
-    else
-      mark = bombs_nearby
-    end
-
-    mark
   end
 
   ADJS = [
@@ -55,7 +57,7 @@ class Tile
     bombs_nearby = 0
 
     neighbors.each do |neighbor|
-      if neighbor.bombed
+      if @board.board[neighbor[0]][neighbor[1]].bombed
         bombs_nearby += 1
       end
     end
@@ -65,6 +67,8 @@ class Tile
 end
 
 class Board
+  attr_accessor :board
+
   def initialize
     @board = []
     i = 0
@@ -72,7 +76,7 @@ class Board
       j = 0
       @board << []
       while j < 9
-        @board[i][j] = Tile.new
+        @board[i][j] = Tile.new(self)
         @board[i][j].coords = [i,j]
         j += 1
       end
@@ -83,7 +87,10 @@ class Board
   end
 
   def print_board
+
     @board.each do |row|
+      print_row = ""
+
       row.each do |tile|
         if tile.flagged
           space = "F"
@@ -96,7 +103,12 @@ class Board
 
       end
 
-      p print_row
+      puts print_row
     end
+
+    nil
   end
 end
+
+b = Board.new
+b.print_board
